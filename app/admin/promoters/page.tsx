@@ -40,45 +40,51 @@ export default function PromotersPage() {
 
   if (loading)
     return (
-      <div className="min-h-screen flex items-center justify-center text-gray-500">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-200 via-cyan-200 to-green-200 text-gray-700 text-lg">
         Cargando promotores...
       </div>
     );
 
   return (
-    <div className="flex justify-center min-h-screen bg-gray-50 p-10">
-      <div className="max-w-5xl mx-auto bg-white shadow-xl rounded-2xl p-8">
-        <div className="flex justify-between items-center mb-6">
+    <div className="min-h-screen bg-gradient-to-br from-sky-200 via-cyan-200 to-green-200 flex justify-center items-start p-10">
+      
+      <div className="w-full max-w-5xl bg-white/80 backdrop-blur-md shadow-2xl rounded-3xl p-10 border border-white/40">
+
+        <div className="flex justify-between items-center mb-8">
+
           <h1 className="text-3xl font-bold text-gray-800">
             Promotores Registrados
           </h1>
 
           <button
             onClick={descargarExcel}
-            className="w-40 bg-black text-white px-4 py-2 rounded-lg hover:opacity-80 transition m-5"
+            className="bg-gradient-to-r from-sky-500 to-green-400 text-white px-6 py-3 rounded-xl font-semibold shadow-md hover:scale-105 hover:shadow-lg transition"
           >
             Descargar Excel
           </button>
+
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto rounded-xl border border-gray-200">
+
           <table className="w-full border-collapse">
+
             <thead>
-              <tr className="bg-gray-100 text-gray-600 text-sm uppercase tracking-wider">
+              <tr className="bg-sky-100 text-gray-700 text-sm uppercase tracking-wider">
                 <th className="text-left px-6 py-4">DNI</th>
-                <th className="text-left px-6 py-4">
-                  Total Participantes
-                </th>
+                <th className="text-left px-6 py-4">Total Participantes</th>
                 <th className="text-left px-6 py-4">Estado</th>
               </tr>
             </thead>
+
             <tbody>
               {promoters.map((promoter) => (
                 <tr
                   key={promoter.id}
-                  className="border-b hover:bg-gray-50 transition"
+                  className="border-b hover:bg-sky-50 transition"
                 >
-                  <td className="px-6 py-4 font-medium text-gray-800">
+
+                  <td className="px-6 py-4 font-semibold text-gray-800">
                     {promoter.id}
                   </td>
 
@@ -88,10 +94,10 @@ export default function PromotersPage() {
 
                   <td className="px-6 py-4">
                     <span
-                      className={`px-3 py-1 text-xs rounded-full font-semibold ${
+                      className={`px-4 py-1 text-xs rounded-full font-semibold ${
                         (promoter.totalParticipants || 0) > 0
-                          ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-600"
+                          ? "bg-green-200 text-green-800"
+                          : "bg-red-200 text-red-700"
                       }`}
                     >
                       {(promoter.totalParticipants || 0) > 0
@@ -99,15 +105,19 @@ export default function PromotersPage() {
                         : "Sin participantes"}
                     </span>
                   </td>
+
                 </tr>
               ))}
             </tbody>
+
           </table>
+
         </div>
 
-        <div className="mt-6 text-sm text-gray-500">
+        <div className="mt-6 text-sm text-gray-700 font-medium">
           Total promotores: {promoters.length}
         </div>
+
       </div>
     </div>
   );

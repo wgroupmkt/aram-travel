@@ -36,7 +36,6 @@ export default function Registro() {
           `🎉 Registro exitoso! N° de sorteo: ${data.raffleNumber}`
         );
 
-        // 🔄 Limpiar formulario
         setForm({
           sellerId: "",
           name: "",
@@ -60,18 +59,19 @@ export default function Registro() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-200 via-cyan-200 to-green-200 p-6">
+
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-8 rounded-xl shadow-md w-full max-w-md flex flex-col gap-4"
+        className="w-full max-w-md bg-white/80 backdrop-blur-md border border-white/40 p-10 rounded-3xl shadow-2xl flex flex-col gap-5"
       >
-        <h1 className="text-2xl font-bold text-center text-black">
+        <h1 className="text-3xl font-bold text-center text-gray-800">
           Registro de Participante
         </h1>
 
         {/* 🔵 PROMOTOR */}
         <div className="flex flex-col gap-3">
-          <h2 className="text-gray-600 font-semibold">Promotor</h2>
+          <h2 className="text-gray-700 font-semibold">Promotor</h2>
 
           <input
             name="sellerId"
@@ -79,13 +79,13 @@ export default function Registro() {
             onChange={handleChange}
             placeholder="DNI Promotor"
             required
-            className="border p-2 rounded text-black"
+            className="border border-gray-200 p-3 rounded-lg focus:ring-2 focus:ring-sky-400 outline-none text-gray-700"
           />
         </div>
 
         {/* 🟢 PARTICIPANTE */}
         <div className="flex flex-col gap-3">
-          <h2 className="text-gray-600 font-semibold">Participante</h2>
+          <h2 className="text-gray-700 font-semibold">Participante</h2>
 
           <input
             name="name"
@@ -93,7 +93,7 @@ export default function Registro() {
             onChange={handleChange}
             placeholder="Nombre"
             required
-            className="border p-2 rounded text-black"
+            className="border border-gray-200 p-3 rounded-lg focus:ring-2 focus:ring-sky-400 outline-none text-gray-700"
           />
 
           <input
@@ -102,7 +102,7 @@ export default function Registro() {
             onChange={handleChange}
             placeholder="DNI Participante"
             required
-            className="border p-2 rounded text-black"
+            className="border border-gray-200 p-3 rounded-lg focus:ring-2 focus:ring-sky-400 outline-none text-gray-700"
           />
 
           <input
@@ -111,7 +111,7 @@ export default function Registro() {
             onChange={handleChange}
             placeholder="Edad"
             required
-            className="border p-2 rounded text-black"
+            className="border border-gray-200 p-3 rounded-lg focus:ring-2 focus:ring-sky-400 outline-none text-gray-700"
           />
 
           <input
@@ -120,7 +120,7 @@ export default function Registro() {
             onChange={handleChange}
             placeholder="Email"
             type="email"
-            className="border p-2 rounded text-black"
+            className="border border-gray-200 p-3 rounded-lg focus:ring-2 focus:ring-sky-400 outline-none text-gray-700"
           />
 
           <input
@@ -128,28 +128,28 @@ export default function Registro() {
             value={form.phone}
             onChange={handleChange}
             placeholder="Teléfono"
-            className="border p-2 rounded text-black"
+            className="border border-gray-200 p-3 rounded-lg focus:ring-2 focus:ring-sky-400 outline-none text-gray-700"
           />
         </div>
 
-        {/* 🟡 MENSAJES */}
+        {/* MENSAJES */}
         {successMessage && (
-          <div className="bg-green-100 text-green-700 p-3 rounded text-sm">
+          <div className="bg-green-200 text-green-800 p-3 rounded-lg text-sm font-medium">
             {successMessage}
           </div>
         )}
 
         {errorMessage && (
-          <div className="bg-red-100 text-red-700 p-3 rounded text-sm">
+          <div className="bg-red-200 text-red-700 p-3 rounded-lg text-sm font-medium">
             {errorMessage}
           </div>
         )}
 
-        {/* 🔘 BOTÓN */}
+        {/* BOTÓN */}
         <button
           type="submit"
           disabled={loading}
-          className="bg-black text-white p-3 rounded hover:bg-gray-800 transition"
+          className="bg-gradient-to-r from-sky-500 to-green-400 text-white font-semibold p-3 rounded-xl shadow-md hover:scale-105 hover:shadow-lg transition"
         >
           {loading ? "Registrando..." : "Registrar"}
         </button>
