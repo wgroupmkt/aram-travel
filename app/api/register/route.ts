@@ -54,7 +54,7 @@ export async function POST(req: Request) {
     if (email) {
       try {
         await resend.emails.send({
-          from: "Registro <onboarding@resend.dev>", // ⚠️ cambiar luego
+          from: "Registro <registro@promo.agustinescuderoweb.com>", // ⚠️ cambiar luego
           to: email,
           subject: "Tu número de sorteo 🎟",
           html: `
