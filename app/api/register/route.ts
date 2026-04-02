@@ -60,7 +60,7 @@ export async function POST(req: Request) {
     if (email && resend) {
       try {
         await resend.emails.send({
-          from: "Registro <onboarding@resend.dev>",
+          from: "Registro <info@bono.wolftravel.com.ar>",
           to: email,
           subject: "Tu número de sorteo 🎟",
           html: `
