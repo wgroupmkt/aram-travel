@@ -22,7 +22,7 @@ export async function generarImagen(numero: string) {
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
 
-  ctx.fillText(numero, image.width / 2, image.height * 0.64);
+  ctx.fillText(numero, image.width / 2, image.height * 0.65);
 
   return canvas.toBuffer("image/jpeg");
 }
