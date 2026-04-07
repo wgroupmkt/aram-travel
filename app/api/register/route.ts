@@ -74,13 +74,14 @@ export async function POST(req: Request) {
       .where("createdAt", "<=", endOfMonth)
       .get();
 
-    if (snapshot.size >= 15) {
-      return NextResponse.json({
+    const total = snapshot.size;
+
+    if (total + 1 > 15) {
+        return NextResponse.json({
         success: false,
         error: "Ya alcanzaste el máximo de 15 participaciones este mes 😅",
-      });
+        });
     }
-
     // 💾 GUARDAR PARTICIPANTE
     await participantRef.set({
       name,
