@@ -85,15 +85,13 @@ export async function POST(req: Request) {
   from: "Registro <info@bono.wolftravel.com.ar>",
   to: email,
   subject: "Tu número de sorteo 🎟",
-  html: `
+  html:`
     <div style="font-family: Arial; padding:20px;">
       <h2>¡Registro exitoso!</h2>
-      <p>Hola ${name},</p>
+      <p>Hola ${name}, gracias por ayudarme con mi viajes de egresados 💙🐺</p>
       <p>Tu número de sorteo es:</p>
       <h1 style="color:#2563eb;">${raffleNumber}</h1>
       <img src="cid:sorteo" style="max-width:100%;" />
-      <p>¡Descarga el número de sorteo!</p>
-      <p>¡Mucha suerte!🍀</p>
     </div>
   `,
   attachments: [
