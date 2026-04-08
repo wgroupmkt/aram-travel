@@ -34,12 +34,6 @@ export async function POST(req: Request) {
       });
     }
 
-    // 🎟 NUMERO DE SORTEO
-    let raffleNumber = Date.now().toString().slice(-5);
-
-        if (raffleNumber.startsWith("0")) {
-        raffleNumber = "1" + raffleNumber.slice(1);
-        }
 
     // 🎂 CALCULAR EDAD
     function calcularEdad(fecha: string) {
@@ -83,17 +77,29 @@ export async function POST(req: Request) {
       });
     }
 
-    // 💾 GUARDAR PARTICIPANTE
-    await participantRef.set({
-      name,
-      fechaNacimiento,
-      edad: edadCalculada,
-      dni,
-      email: email || "",
-      phone: phone || "",
-      numeroSorteo: raffleNumber,
-      createdAt: new Date(),
-    });
+      // 🎟 NUMERO DE SORTEO
+       let raffleNumber = Date.now().toString().slice(-5);
+
+       if (raffleNumber.startsWith("0")) {
+       raffleNumber = "1" + raffleNumber.slice(1);
+       }
+
+      // 👇 AGREGAR ESTO
+       const participantRef = passengerRef
+         .collection("participants")
+         .doc(raffleNumber);
+
+      // 💾 GUARDAR PARTICIPANTE
+      await participantRef.set({
+        name,
+        fechaNacimiento,
+        edad: edadCalculada,
+        dni,
+        email: email || "",
+        phone: phone || "",
+        numeroSorteo: raffleNumber,
+        createdAt: new Date(),
+      });
 
     // 🔢 ACTUALIZAR CONTADOR
     const currentTotal = passengerDoc.data()?.totalParticipants || 0;
