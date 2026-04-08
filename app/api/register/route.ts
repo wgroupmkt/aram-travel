@@ -35,9 +35,11 @@ export async function POST(req: Request) {
     }
 
     // 🎟 NUMERO DE SORTEO
-    const raffleNumber = Date.now().toString().slice(-6);
+    let raffleNumber = Date.now().toString().slice(-5);
 
-    const participantRef = passengerRef.collection("participants").doc();
+        if (raffleNumber.startsWith("0")) {
+        raffleNumber = "1" + raffleNumber.slice(1);
+        }
 
     // 🎂 CALCULAR EDAD
     function calcularEdad(fecha: string) {
