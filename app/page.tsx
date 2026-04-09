@@ -146,7 +146,7 @@ export default function Registro() {
             
           <input
             type="date"
-            name="fechaNacimiento"
+            name="fechaNacimient"
             value={form.fechaNacimiento}
             onChange={handleChange}
             required
