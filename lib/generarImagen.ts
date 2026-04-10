@@ -8,7 +8,7 @@ registerFont(
 );
 
 export async function generarImagen(numero: string) {
-  const imagePath = path.join(process.cwd(), "public/img/sorteo.jpeg");
+  const imagePath = path.join(process.cwd(), "public/img/sorteo.jpg");
   const image = await loadImage(imagePath);
 
   const canvas = createCanvas(image.width, image.height);
@@ -22,7 +22,7 @@ export async function generarImagen(numero: string) {
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
 
-  ctx.fillText(numero, image.width / 2, image.height * 0.655);
+  ctx.fillText(numero, image.width * 0.63, image.height * 0.5677);
 
   return canvas.toBuffer("image/jpeg");
 }

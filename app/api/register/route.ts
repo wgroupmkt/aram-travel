@@ -14,6 +14,7 @@ const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 export async function POST(req: Request) {
   try {
+
     const { sellerId, name, dni, fechaNacimiento, email, phone } = await req.json();
 
     if (!sellerId || !name || !dni || !fechaNacimiento) {
@@ -115,13 +116,13 @@ export async function POST(req: Request) {
     if (email && resend) {
       try {
         await resend.emails.send({
-          from: "Registro <info@bono.wolftravel.com.ar>",
+          from: "Registro <info@bono.aramendiviajes.com>",
           to: email,
           subject: "Tu número de sorteo 🎟",
           html: `
             <div style="font-family: Arial; padding:20px;">
               <h2>¡Registro exitoso!</h2>
-              <p>Hola ${name}, gracias por ayudarme con mi viaje de egresados 💙🐺</p>
+              <p>Hola ${name}, gracias por ayudarme con mi viaje de egresados 🤸🏽‍♂️🌈</p>
               <p>Tu número de sorteo es:</p>
               <h1 style="color:#2563eb;">${raffleNumber}</h1>
               <img src="cid:sorteo" style="max-width:100%;" />
