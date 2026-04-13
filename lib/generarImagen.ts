@@ -16,13 +16,23 @@ export async function generarImagen(numero: string) {
 
   ctx.drawImage(image, 0, 0);
 
-  // 🔥 usar la fuente registrada
+  // dibujar imagen base
+  ctx.drawImage(image, 0, 0);
+
+  // estilos de texto
   ctx.font = "bold 50px Inter";
   ctx.fillStyle = "#ffffff";
+
+  // ⚠️ CLAVE: centrado real
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
 
-  ctx.fillText(numero, image.width * 0.63, image.height * 0.5677);
+  // dibujar texto en el centro
+  ctx.fillText(numero, canvas.width / 2, canvas.height / 2);
+
+  // (opcional) debug para ver el centro exacto
+  // ctx.fillStyle = "red";
+  // ctx.fillRect(canvas.width / 2 - 5, canvas.height / 2 - 5, 10, 10);
 
   return canvas.toBuffer("image/jpeg");
 }
