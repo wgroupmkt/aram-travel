@@ -25,7 +25,7 @@ export async function generarImagen(numero: string) {
 
   // ⚠️ CLAVE: centrado real
   const offsetX = 0;
-  const offsetY = -30;
+  const offsetY = 0;
 
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
