@@ -24,11 +24,17 @@ export async function generarImagen(numero: string) {
   ctx.fillStyle = "#ffffff";
 
   // ⚠️ CLAVE: centrado real
+  const offsetX = 0;
+  const offsetY = -30;
+
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
 
-  // dibujar texto en el centro
-  ctx.fillText(numero, canvas.width / 2 - 20, canvas.height / 2 - 20);
+  ctx.fillText(
+   numero,
+   canvas.width / 2 + offsetX,
+   canvas.height / 2 + offsetY
+  );
 
   // (opcional) debug para ver el centro exacto
   // ctx.fillStyle = "red";
