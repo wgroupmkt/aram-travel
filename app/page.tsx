@@ -120,7 +120,7 @@ export default function Registro() {
             onChange={handleChange}
             placeholder="D.N.I - Pasajero"
             required
-           className={`${montserrat.className} font-light border-2 border-cyan-200 p-3 rounded-[200px] focus:ring-2 focus:ring-sky-400 outline-none text-cyan-700`}
+           className={`${montserrat.className} input-celeste font-light border-2 border-cyan-200 p-3 rounded-[200px] focus:ring-2 focus:ring-sky-400 outline-none text-cyan-700`}
           />
         </div>
 
@@ -134,7 +134,7 @@ export default function Registro() {
             onChange={handleChange}
             placeholder="Nombre"
             required
-           className={`${montserrat.className} font-light border-2 border-pink-200 p-3 rounded-[200px] focus:ring-2 focus:ring-pink-400 outline-none text-pink-700`}
+           className={`${montserrat.className} input-rosado font-light border-2 border-pink-200 p-3 rounded-[200px] focus:ring-2 focus:ring-pink-400 outline-none text-pink-700`}
           />
 
           <input
@@ -143,7 +143,7 @@ export default function Registro() {
             onChange={handleChange}
             placeholder="D.N.I - Participante"
             required
-           className={`${montserrat.className} font-light border-2 border-pink-200 p-3 rounded-[200px] focus:ring-2 focus:ring-pink-400 outline-none text-pink-700`}
+           className={`${montserrat.className} input-rosado font-light border-2 border-pink-200 p-3 rounded-[200px] focus:ring-2 focus:ring-pink-400 outline-none text-pink-700`}
           />
             
           <input
@@ -152,7 +152,7 @@ export default function Registro() {
             value={form.fechaNacimiento}
             onChange={handleChange}
             required
-            className={`${montserrat.className} font-light border-2 border-pink-200 p-3 rounded-[200px] focus:ring-2 focus:ring-pink-400 outline-none text-pink-700`}
+            className={`${montserrat.className} input-rosado font-light border-2 border-pink-200 p-3 rounded-[200px] focus:ring-2 focus:ring-pink-400 outline-none text-pink-700`}
            />
 
           <input
@@ -161,7 +161,7 @@ export default function Registro() {
             onChange={handleChange}
             placeholder="Email"
             type="email"
-           className={`${montserrat.className} font-light border-2 border-pink-200 p-3 rounded-[200px] focus:ring-2 focus:ring-pink-400 outline-none text-pink-700`}
+           className={`${montserrat.className} input-rosado font-light border-2 border-pink-200 p-3 rounded-[200px] focus:ring-2 focus:ring-pink-400 outline-none text-pink-700`}
           />
 
           <input
@@ -169,7 +169,7 @@ export default function Registro() {
             value={form.phone}
             onChange={handleChange}
             placeholder="Teléfono"
-            className={`${montserrat.className} font-light border-2 border-pink-200 p-3 rounded-[200px] focus:ring-2 focus:ring-pink-400 outline-none text-pink-700`}
+            className={`${montserrat.className} input-rosado font-light border-2 border-pink-200 p-3 rounded-[200px] focus:ring-2 focus:ring-pink-400 outline-none text-pink-700`}
           />
         </div>
 

@@ -19,22 +19,29 @@
   }
 }
 
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus,
-textarea:-webkit-autofill {
-  -webkit-box-shadow: 0 0 0px 1000px rgba(255,255,255,0.1) inset;
-  -webkit-text-fill-color: rgb(94, 96, 112);
-  transition: background-color 5000s ease-in-out 0s;
-}
-
-input:-webkit-autofill {
-  -webkit-box-shadow: 0 0 0px 1000px rgba(0,0,0,0.3) inset;
-  -webkit-text-fill-color: white;
-}
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Celeste */
+.input-celeste:-webkit-autofill,
+.input-celeste:-webkit-autofill:hover,
+.input-celeste:-webkit-autofill:focus,
+.input-celeste:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #e0f7ff inset !important;
+  -webkit-text-fill-color: #0e7490 !important; /* similar a text-cyan-700 */
+  caret-color: #0e7490;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+.input-rosado:-webkit-autofill,
+.input-rosado:-webkit-autofill:hover,
+.input-rosado:-webkit-autofill:focus,
+.input-rosado:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #ffe4ec inset !important;
+  -webkit-text-fill-color: #be185d !important;
+  caret-color: #be185d;
 }
