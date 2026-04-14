@@ -146,7 +146,7 @@ export default function Registro() {
               maxLength={8}
               inputMode="numeric"
               pattern="[0-9]*"
-              className={`${montserrat.className} input-rosado font-light border-2 border-pink-200 p-3 rounded-[200px] focus:ring-2 focus:ring-pink-400 outline-none text-pink-700`}
+              className={`${montserrat.className} input-celeste font-light border-2 border-cyan-200 p-3 rounded-[200px] focus:ring-2 focus:ring-cyan-400 outline-none text-cyan-700`}
             />
         </div>
 

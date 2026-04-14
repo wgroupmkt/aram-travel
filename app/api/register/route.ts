@@ -71,10 +71,10 @@ export async function POST(req: Request) {
       .where("createdAt", "<=", endOfMonth)
       .get();
 
-    if (snapshot.size > 14) {
+    if (snapshot.size > 2) {
       return NextResponse.json({
         success: false,
-        error: "Ya alcanzaste el máximo de 15 participaciones este mes 😅",
+        error: "Ya alcanzaste el máximo de 3 participaciones este mes 😅",
       });
     }
 
