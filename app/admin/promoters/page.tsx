@@ -44,6 +44,7 @@ export default function Admin() {
       {/* 🎥 VIDEO FONDO */}
       <Image src={fondo}
        className="absolute"
+       alt="fondo"
       >
 
       </Image>
