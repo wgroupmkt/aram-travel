@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Montserrat } from "next/font/google";
+import fondo from "@/public/img/fondo.jpeg"
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -41,18 +42,14 @@ export default function Admin() {
     <div className="relative min-h-screen flex items-center justify-center p-6">
 
       {/* 🎥 VIDEO FONDO */}
-      <video
-        className="absolute top-0 left-0 w-full h-full object-cover"
-        autoPlay
-        muted
-        loop
-        playsInline
+      <Image src={fondo}
+       className="absolute"
       >
-        <source src="/video/wolf.mp4" type="video/mp4" />
-      </video>
+
+      </Image>
 
       {/* 🌫️ OVERLAY */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm"></div>
 
       {/* 📦 CONTENEDOR */}
       <div className="relative w-full max-w-5xl bg-blue-900/40 backdrop-blur-2xl border border-white/20 rounded-3xl p-6 shadow-2xl">
@@ -60,9 +57,9 @@ export default function Admin() {
         {/* 🧠 LOGO */}
         <div className="flex justify-end mb-4">
           <Image
-            src="/img/logo.png"
+            src="/img/logoara.png"
             alt="Logo"
-            width={100}
+            width={200}
             height={40}
           />
         </div>
