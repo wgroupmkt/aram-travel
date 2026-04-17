@@ -183,7 +183,7 @@ export default function Registro() {
             inputMode="numeric"
             className={`
               ${montserrat.className}
-              font-light border-2 p-3 rounded-[200px] outline-none transition
+              font-medium border-2 p-3 rounded-[200px] outline-none transition text-cyan-700 
               ${
                 existe === null
                   ? "border-cyan-200"
