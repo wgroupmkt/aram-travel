@@ -9,6 +9,11 @@ const resendApiKey = process.env.RESEND_API_KEY;
 const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 export async function POST(req: Request) {
+
+  console.log("EMAIL_USER:", process.env.EMAIL_USER);
+  console.log("SHEET_ID:", process.env.SHEET_ID);
+  console.log("RESEND_API_KEY:", process.env.RESEND_API_KEY);
+
   try {
     const {
       numeroPasajero,
