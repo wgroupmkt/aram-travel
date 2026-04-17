@@ -9,34 +9,34 @@ export async function GET(req: Request) {
     if (!numero) {
       return NextResponse.json({
         existe: false,
-        error: "Falta número de pasajero",
+        error: "Falta número",
       });
     }
 
-    // 🔥 BUSCAR POR CAMPO
-    const snapshot = await db
-      .collection("pasajeros")
-      .where("numeroPasajero", "==", numero)
-      .get();
+    // 🔥 BUSCAR POR ID (NO usar where)
+    const docRef = db.collection("pasajeros").doc(numero);
+    const docSnap = await docRef.get();
 
-    if (snapshot.empty) {
+    if (!docSnap.exists) {
       return NextResponse.json({
         existe: false,
-        error: "No existe el pasajero",
       });
     }
 
     return NextResponse.json({
       existe: true,
-      data: snapshot.docs[0].data(),
+      data: docSnap.data(),
     });
 
   } catch (error) {
-    console.error("❌ ERROR VALIDAR:", error);
+    console.error("ERROR VALIDAR:", error);
 
-    return NextResponse.json({
-      existe: false,
-      error: "Error del servidor",
-    });
+    return NextResponse.json(
+      {
+        existe: false,
+        error: "Error interno",
+      },
+      { status: 500 }
+    );
   }
 }

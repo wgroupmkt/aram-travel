@@ -3,15 +3,12 @@ export async function agregarFila(data: any) {
     const res = await fetch(process.env.GOOGLE_SCRIPT_URL!, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json",   // ✓ JSON directo
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(data),             // ✓ sin wrapping en "data="
     });
-
     const text = await res.text();
-
     console.log("📊 Sheet response:", text);
-
   } catch (error) {
     console.error("❌ Error Google Sheets:", error);
   }
