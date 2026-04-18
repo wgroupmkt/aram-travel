@@ -150,7 +150,7 @@ export default function Registro() {
         className="w-full flex justify-center max-w-md bg-white p-5 rounded-3xl shadow-2xl flex flex-col gap-5 border-white ring-2 ring-pink-200 ring-inset"
       >
         {/* LOGO */}
-        <div className="flex justify-end absolute top-8 right-7">
+        <div className="flex justify-end">
           <Image
             src="/img/logoara.png"
             alt="Registro"
