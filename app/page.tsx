@@ -240,7 +240,7 @@ export default function Registro() {
             name="fechaNacimiento"
             value={form.fechaNacimiento}
             onChange={handleChange}
-            className={`${montserrat.className} border-2 border-pink-200 p-3 rounded-[200px] outline-none text-pink-700`}
+            className={`${montserrat.className} border-2 border-pink-200 px-3 py-2 rounded-full outline-none text-pink-700 text-base min-w-[150px] w-full`}
           />
 
           <input
