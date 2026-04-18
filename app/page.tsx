@@ -238,6 +238,7 @@ export default function Registro() {
           <input
             type="date"
             name="fechaNacimiento"
+            placeholder="Fecha-nacimiento"
             value={form.fechaNacimiento}
             onChange={handleChange}
             className={`${montserrat.className} border-2 border-pink-200 px-3 py-2 rounded-full outline-none text-pink-700 text-base min-w-[150px] w-full`}
