@@ -45,3 +45,15 @@ body {
   -webkit-text-fill-color: #be185d !important;
   caret-color: #be185d;
 }
+
+input[type="date"] {
+  color: #be185d; /* equivalente a text-pink-700 */
+}
+
+input[type="date"]::-webkit-datetime-edit {
+  color: #be185d;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.4);
+}
