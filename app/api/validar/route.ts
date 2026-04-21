@@ -13,7 +13,6 @@ export async function GET(req: Request) {
       });
     }
 
-    // 🔥 BUSCAR POR ID (NO usar where)
     const docRef = db.collection("pasajeros").doc(numero);
     const docSnap = await docRef.get();
 
@@ -27,7 +26,6 @@ export async function GET(req: Request) {
       existe: true,
       data: docSnap.data(),
     });
-
   } catch (error) {
     console.error("ERROR VALIDAR:", error);
 

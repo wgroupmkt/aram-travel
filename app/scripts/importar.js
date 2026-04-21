@@ -4,64 +4,100 @@ import { Readable } from "stream";
 import admin from "firebase-admin";
 import fs from "fs";
 
-// 🔐 Firebase
+// 🔐 Leer credenciales desde JSON
+const serviceAccount = JSON.parse(
+  fs.readFileSync("../../lib/serviceAccountKey.json", "utf8")
+);
+
+// 🔥 Inicializar Firebase
 admin.initializeApp({
-  credential: admin.credential.cert(
-    JSON.parse(fs.readFileSync("./serviceAccountKey.json", "utf8"))
-  ),
+  credential: admin.credential.cert(serviceAccount),
 });
 
 const db = admin.firestore();
 
-// 🔗 URL de tu Google Sheet como CSV
+// 🔗 URL Google Sheets (CSV)
 const SHEET_URL =
-  "https://docs.google.com/spreadsheets/d/1JTNEuYdZXSyj8Dwx3KYgx5yFSElbaCBRwcNP8GvdZkk/export?format=csv";
+  "https://docs.google.com/spreadsheets/d/1JTNEuYdZXSyj8Dwx3KYgx5yFSElbaCBRwcNP8GvdZkk/export?format=csv&gid=1830356038";
 
 async function importar() {
-  const response = await fetch(SHEET_URL);
-  const text = await response.text();
+  try {
+    console.log("📥 Descargando datos...");
 
-  const resultados = [];
+    const response = await fetch(SHEET_URL);
+    const text = await response.text();
 
-  Readable.from(text)
-    .pipe(csv())
-    .on("data", (data) => resultados.push(data))
-    .on("end", async () => {
-      console.log("Subiendo datos...");
-      
-     for (const row of resultados) {
-  // 🔥 limpiar número (OJO con el símbolo º)
-  const numero = row["Nº PASAJERO"]?.replace(/\./g, "");
+    const resultados = [];
+    const stream = Readable.from([text]);
 
-  // 🔥 obtener dni primero
-  const dni = row.DNI_PASAJERO;
+    stream
+      .pipe(csv())
+      .on("data", (data) => resultados.push(data))
+      .on("end", async () => {
+        console.log(`📊 Filas encontradas: ${resultados.length}`);
+        console.log("🚀 Subiendo a Firebase...");
 
-  // 🧠 armar nombre (puede venir incompleto)
-  const nombreCompleto =
-    `${row.NOMBRE || ""} ${row.APELLIDO || ""}`.trim() || "SIN NOMBRE";
+        let batch = db.batch();
+        let count = 0;
 
-  // ✅ validar SOLO lo importante
-  if (!numero || !dni) {
-    console.log("Fila inválida:", row);
-    continue;
+        for (const row of resultados) {
+          // 🔥 limpiar número
+          const numero = row["Nº PASAJERO"]?.replace(/\./g, "");
+          const dni = row.DNI_PASAJERO;
+
+          const nombreCompleto =
+            `${row.NOMBRE || ""} ${row.APELLIDO || ""}`.trim() ||
+            "SIN NOMBRE";
+
+          // ✅ validar datos
+          if (!numero || !dni) {
+            console.log("⚠️ Fila inválida:", row);
+            continue;
+          }
+
+          const ref = db.collection("pasajeros").doc(numero);
+
+          batch.set(
+            ref,
+            {
+              numeroPasajero: numero,
+              nombre: nombreCompleto,
+              dni: dni,
+              fechaNacimiento: row.FECHA_NACIMIENTO || "",
+              email: row.EMAIL || "",
+              anio: 2027,
+              creadoEn: new Date(),
+            },
+            { merge: true } // 👈 evita sobreescribir todo
+          );
+
+          count++;
+
+          // 🔥 Firebase limita a 500 operaciones por batch
+          if (count === 500) {
+            await batch.commit();
+            batch = db.batch();
+            count = 0;
+            console.log("⚡ Batch subido (500 registros)");
+          }
+        }
+
+        // 🔥 subir lo restante
+        if (count > 0) {
+          await batch.commit();
+          console.log(`⚡ Último batch subido (${count} registros)`);
+        }
+
+        console.log("✅ Importación completa");
+        process.exit();
+      });
+  } catch (error) {
+    console.error("❌ Error en importación:", error);
   }
-
-  // 💾 guardar
-  await db.collection("pasajeros").doc(numero).set({
-    numeroPasajero: numero,
-    nombre: nombreCompleto,
-    dni: dni,
-    fechaNacimiento: row.FECHA_NACIMIENTO || "",
-    email: row.EMAIL || "",
-    creadoEn: new Date(),
-  });
 }
 
-      console.log("✅ Importación completa");
-      process.exit();
-    });
-}
+// 🧪 verificar conexión
+console.log("🔥 Proyecto Firebase:", admin.app().options.projectId);
 
-console.log("Proyecto Firebase:", admin.app().options.projectId);
-
+// 🚀 ejecutar
 importar();
