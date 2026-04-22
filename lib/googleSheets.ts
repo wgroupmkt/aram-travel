@@ -1,6 +1,6 @@
 export async function agregarFila(data: any) {
   try {
-    const res = await fetch(process.env.GOOGLE_SCRIPT_URL!, {
+    const res = await fetch(process.env.GOOGLE_SCRIPT_SEND_URL!, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",   // ✓ JSON directo
