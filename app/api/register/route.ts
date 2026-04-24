@@ -9,11 +9,6 @@ const resendApiKey = process.env.RESEND_API_KEY;
 const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 export async function POST(req: Request) {
-
-  console.log("EMAIL_USER:", process.env.EMAIL_USER);
-  console.log("SHEET_ID:", process.env.SHEET_ID);
-  console.log("RESEND_API_KEY:", process.env.RESEND_API_KEY);
-
   try {
     const {
       numeroPasajero,
@@ -29,19 +24,6 @@ export async function POST(req: Request) {
       return NextResponse.json({
         success: false,
         error: "Faltan datos obligatorios",
-      });
-    }
-
-    // 📌 REFERENCIA AL PASAJERO
-    const passengerRef = db.collection("pasajeros").doc(numeroPasajero);
-    const passengerDoc = await passengerRef.get();
-
-    // 🆕 CREAR PASAJERO SI NO EXISTE
-    if (!passengerDoc.exists) {
-      await passengerRef.set({
-        numero: numeroPasajero,
-        totalParticipantes: 0,
-        createdAt: new Date(),
       });
     }
 
@@ -61,67 +43,89 @@ export async function POST(req: Request) {
 
     const edadCalculada = calcularEdad(fechaNacimiento);
 
+    // 📌 REFERENCIAS
+    const passengerRef = db.collection("pasajeros").doc(numeroPasajero);
+    const dniRef = db.collection("dniCounts").doc(dniParticipante);
 
-    // 🔒 LIMITE: máximo 3 participantes por pasajero
-     const participantsSnapshot = await passengerRef
-       .collection("participants")
-       .get();
+    let raffleNumber = "";
 
-     if (participantsSnapshot.size >= 3) {
-       return NextResponse.json({
-         success: false,
-         error: "Este pasajero ya tiene 3 participantes cargados 🚫",
-       });
-     }
+    // 🔥 TRANSACCIÓN
+    await db.runTransaction(async (transaction) => {
+      const passengerDoc = await transaction.get(passengerRef);
+      const dniDoc = await transaction.get(dniRef);
 
-    // 🎟 GENERAR NÚMERO DE SORTEO
-    let raffleNumber = Date.now().toString().slice(-5);
+      // 🆕 CREAR PASAJERO SI NO EXISTE
+      if (!passengerDoc.exists) {
+        transaction.set(passengerRef, {
+          numero: numeroPasajero,
+          createdAt: new Date(),
+        });
+      }
 
-    if (raffleNumber.startsWith("0")) {
-      raffleNumber = "1" + raffleNumber.slice(1);
-    }
+      // 🔢 CONTAR PARTICIPANTES REALES (máx 15)
+      const participantsSnapshot = await transaction.get(
+        passengerRef.collection("participants")
+      );
 
-    // 📌 REFERENCIA PARTICIPANTE
-    const participantRef = passengerRef
-      .collection("participants")
-      .doc(raffleNumber);
+      const currentTotal = participantsSnapshot.size;
 
-    // 💾 GUARDAR PARTICIPANTE
-    await participantRef.set({
-      name,
-      fechaNacimiento,
-      edad: edadCalculada,
-      dni: dniParticipante,
-      email: email || "",
-      phone: phone || "",
-      numeroSorteo: raffleNumber,
-      createdAt: new Date(),
+      if (currentTotal >= 15) {
+        throw new Error("LIMITE_PASAJERO");
+      }
+
+      // 🔢 CONTADOR DNI (máx 3)
+      let currentCount = 0;
+
+      if (dniDoc.exists) {
+        currentCount = dniDoc.data()?.count || 0;
+      }
+
+      if (currentCount >= 3) {
+        throw new Error("LIMITE_DNI");
+      }
+
+      // 🎟 GENERAR NÚMERO SEGURO
+      raffleNumber = Math.floor(10000 + Math.random() * 90000).toString();
+
+      const participantRef = passengerRef
+        .collection("participants")
+        .doc(raffleNumber);
+
+      // 💾 GUARDAR PARTICIPANTE
+      transaction.set(participantRef, {
+        name,
+        fechaNacimiento,
+        edad: edadCalculada,
+        dni: dniParticipante,
+        email: email || "",
+        phone: phone || "",
+        numeroSorteo: raffleNumber,
+        createdAt: new Date(),
+      });
+
+      // 🔢 ACTUALIZAR DNI
+      transaction.set(
+        dniRef,
+        { count: currentCount + 1 },
+        { merge: true }
+      );
     });
 
+    // 📄 Google Sheets
     await agregarFila({
-       numeroPasajero,
-       name,
-       dni: dniParticipante,
-       edad: edadCalculada,
-       email,
-       phone,
-       numeroSorteo: raffleNumber,
-     });
+      numeroPasajero,
+      name,
+      dni: dniParticipante,
+      edad: edadCalculada,
+      email,
+      phone,
+      numeroSorteo: raffleNumber,
+    });
 
-    // 🔢 ACTUALIZAR CONTADOR
-    const currentTotal = passengerDoc.data()?.totalParticipantes || 0;
-
-    await passengerRef.set(
-      {
-        totalParticipantes: currentTotal + 1,
-      },
-      { merge: true }
-    );
-
-    // 🖼 GENERAR IMAGEN
+    // 🖼 Imagen
     const bufferImagen = await generarImagen(raffleNumber);
 
-    // 📩 ENVIAR EMAIL
+    // 📩 Email
     if (email && resend) {
       try {
         await resend.emails.send({
@@ -156,8 +160,22 @@ export async function POST(req: Request) {
       numeroSorteo: raffleNumber,
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("❌ ERROR REGISTER:", error);
+
+    if (error.message === "LIMITE_DNI") {
+      return NextResponse.json({
+        success: false,
+        error: "Este DNI ya tiene 3 números 🚫",
+      });
+    }
+
+    if (error.message === "LIMITE_PASAJERO") {
+      return NextResponse.json({
+        success: false,
+        error: "Este pasajero alcanzó el máximo de 15 ventas 🚫",
+      });
+    }
 
     return NextResponse.json({
       success: false,
