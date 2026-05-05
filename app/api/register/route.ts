@@ -3,6 +3,7 @@ import { db } from "@/lib/firebaseAdmin";
 import { Resend } from "resend";
 import { generarImagen } from "@/lib/generarImagen";
 import { agregarFila } from "@/lib/googleSheets";
+import crypto from "crypto";
 
 // 🔐 API KEY
 const resendApiKey = process.env.RESEND_API_KEY;
@@ -10,21 +11,38 @@ const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 export async function POST(req: Request) {
   try {
-    const {
+    const body = await req.json();
+
+    let {
       numeroPasajero,
       name,
       dniParticipante,
       fechaNacimiento,
       email,
       phone,
-    } = await req.json();
+    } = body;
 
-    // ✅ VALIDACIÓN BÁSICA
-    if (!numeroPasajero || !name || !dniParticipante || !fechaNacimiento) {
+    // 🔐 IP (para futuro rate limit)
+    const ip = req.headers.get("x-forwarded-for") || "unknown";
+
+    // 🧼 LIMPIAR DATOS
+    const numeroLimpio = String(numeroPasajero).replace(/\D/g, "");
+    const dniLimpio = String(dniParticipante).replace(/\D/g, "");
+
+    // ✅ VALIDACIONES
+    if (!numeroLimpio || !name || !dniLimpio || !fechaNacimiento) {
       return NextResponse.json({
         success: false,
         error: "Faltan datos obligatorios",
       });
+    }
+
+    if (!/^\d{5,10}$/.test(numeroLimpio)) {
+      throw new Error("NUMERO_INVALIDO");
+    }
+
+    if (!/^\d{7,8}$/.test(dniLimpio)) {
+      throw new Error("DNI_INVALIDO");
     }
 
     // 🎂 CALCULAR EDAD
@@ -44,47 +62,37 @@ export async function POST(req: Request) {
     const edadCalculada = calcularEdad(fechaNacimiento);
 
     // 📌 REFERENCIAS
-    const passengerRef = db.collection("pasajeros").doc(numeroPasajero);
-    const dniRef = db.collection("dniCounts").doc(dniParticipante);
+    const passengerRef = db.collection("pasajeros").doc(numeroLimpio);
+    const dniRef = db.collection("dniCounts").doc(dniLimpio);
 
     let raffleNumber = "";
 
-    // 🔥 TRANSACCIÓN
     await db.runTransaction(async (transaction) => {
       const passengerDoc = await transaction.get(passengerRef);
       const dniDoc = await transaction.get(dniRef);
 
-      // 🆕 CREAR PASAJERO SI NO EXISTE
+      // ❌ NO CREAR PASAJERO AUTOMÁTICAMENTE
       if (!passengerDoc.exists) {
-        transaction.set(passengerRef, {
-          numero: numeroPasajero,
-          createdAt: new Date(),
-        });
+        throw new Error("PASAJERO_NO_VALIDO");
       }
 
-      // 🔢 CONTAR PARTICIPANTES REALES (máx 15)
+      // 🔢 LIMITE POR PASAJERO
       const participantsSnapshot = await transaction.get(
         passengerRef.collection("participants")
       );
 
-      const currentTotal = participantsSnapshot.size;
-
-      if (currentTotal >= 15) {
+      if (participantsSnapshot.size >= 15) {
         throw new Error("LIMITE_PASAJERO");
       }
 
-      // 🔢 CONTADOR DNI (máx 3)
-      let currentCount = 0;
-
-      if (dniDoc.exists) {
-        currentCount = dniDoc.data()?.count || 0;
-      }
+      // 🔢 LIMITE POR DNI
+      let currentCount = dniDoc.exists ? dniDoc.data()?.count || 0 : 0;
 
       if (currentCount >= 3) {
         throw new Error("LIMITE_DNI");
       }
 
-      // 🎟 GENERAR NÚMERO ALEATORIO ÚNICO
+      // 🎟 RANDOM SEGURO
       const allParticipants = await transaction.get(
         db.collectionGroup("participants")
       );
@@ -94,16 +102,10 @@ export async function POST(req: Request) {
       let numeroValido = false;
 
       while (!numeroValido) {
-        // genera entre 10000 y 99999 (5 cifras)
         if (totalGenerados < 90000) {
-          raffleNumber = Math.floor(
-            10000 + Math.random() * 90000
-          ).toString();
+          raffleNumber = crypto.randomInt(10000, 99999).toString();
         } else {
-          // cuando se agotan, pasa a 6 cifras
-          raffleNumber = Math.floor(
-            100000 + Math.random() * 900000
-          ).toString();
+          raffleNumber = crypto.randomInt(100000, 999999).toString();
         }
 
         const existe = allParticipants.docs.some(
@@ -121,13 +123,14 @@ export async function POST(req: Request) {
 
       // 💾 GUARDAR PARTICIPANTE
       transaction.set(participantRef, {
-        name,
+        name: name.trim(),
         fechaNacimiento,
         edad: edadCalculada,
-        dni: dniParticipante,
+        dni: dniLimpio,
         email: email || "",
         phone: phone || "",
         numeroSorteo: raffleNumber,
+        ip,
         createdAt: new Date(),
       });
 
@@ -141,9 +144,9 @@ export async function POST(req: Request) {
 
     // 📄 Google Sheets
     await agregarFila({
-      numeroPasajero,
+      numeroPasajero: numeroLimpio,
       name,
-      dni: dniParticipante,
+      dni: dniLimpio,
       edad: edadCalculada,
       email,
       phone,
@@ -166,23 +169,14 @@ export async function POST(req: Request) {
               <p>Hola ${name}, gracias por participar 🎉</p>
               <p>Tu número de sorteo es:</p>
               <h1 style="color:#2563eb;">${raffleNumber}</h1>
-              <img src="cid:sorteo" style="max-width:100%;" />
             </div>
           `,
-          attachments: [
-            {
-              filename: "sorteo.png",
-              content: bufferImagen,
-              cid: "sorteo",
-            } as any,
-          ],
         });
       } catch (error) {
         console.error("❌ Error enviando email:", error);
       }
     }
 
-    // ✅ RESPUESTA FINAL
     return NextResponse.json({
       success: true,
       numeroSorteo: raffleNumber,
@@ -190,6 +184,13 @@ export async function POST(req: Request) {
 
   } catch (error: any) {
     console.error("❌ ERROR REGISTER:", error);
+
+    if (error.message === "PASAJERO_NO_VALIDO") {
+      return NextResponse.json({
+        success: false,
+        error: "Número de pasajero inválido 🚫",
+      });
+    }
 
     if (error.message === "LIMITE_DNI") {
       return NextResponse.json({
