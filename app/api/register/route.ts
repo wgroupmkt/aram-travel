@@ -84,8 +84,36 @@ export async function POST(req: Request) {
         throw new Error("LIMITE_DNI");
       }
 
-      // 🎟 GENERAR NÚMERO SEGURO
-      raffleNumber = Math.floor(10000 + Math.random() * 90000).toString();
+      // 🎟 GENERAR NÚMERO ALEATORIO ÚNICO
+      const allParticipants = await transaction.get(
+        db.collectionGroup("participants")
+      );
+
+      const totalGenerados = allParticipants.size;
+
+      let numeroValido = false;
+
+      while (!numeroValido) {
+        // genera entre 10000 y 99999 (5 cifras)
+        if (totalGenerados < 90000) {
+          raffleNumber = Math.floor(
+            10000 + Math.random() * 90000
+          ).toString();
+        } else {
+          // cuando se agotan, pasa a 6 cifras
+          raffleNumber = Math.floor(
+            100000 + Math.random() * 900000
+          ).toString();
+        }
+
+        const existe = allParticipants.docs.some(
+          (doc) => doc.id === raffleNumber
+        );
+
+        if (!existe) {
+          numeroValido = true;
+        }
+      }
 
       const participantRef = passengerRef
         .collection("participants")
