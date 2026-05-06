@@ -87,7 +87,7 @@ export default function Registro() {
   async function handleSubmit(e: React.FormEvent) {
   e.preventDefault();
 
-  if (!existe) {
+  if (existe !== true) {
     setErrorMessage("El número de pasajero no es válido");
     return;
   }
@@ -294,7 +294,7 @@ export default function Registro() {
 
         <div className="flex justify-center">
         <Turnstile
-        
+
              sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
              onVerify={(token) => setCaptchaToken(token)}
              onExpire={() => setCaptchaToken("")}
