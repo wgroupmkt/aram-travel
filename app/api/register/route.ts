@@ -8,6 +8,7 @@ import crypto from "crypto";
 const resendApiKey = process.env.RESEND_API_KEY;
 const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -89,7 +90,7 @@ export async function POST(req: Request) {
       });
     }
 
-    if (!/^\d{5,10}$/.test(numeroLimpio)) {
+    if (!/^\d{4,10}$/.test(numeroLimpio)) {
       throw new Error("NUMERO_INVALIDO");
     }
 
