@@ -293,13 +293,15 @@ export default function Registro() {
         {/* BOTÓN */ }
 
         <div className="flex justify-center">
-         <Turnstile
-           sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
-           onVerify={(token) => setCaptchaToken(token)}
-           onExpire={() => setCaptchaToken("")}
-           onError={() => setCaptchaToken("")}
-           options={{ action: "submit" }}
-         />
+        <Turnstile
+        
+             sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+             onVerify={(token) => setCaptchaToken(token)}
+             onExpire={() => setCaptchaToken("")}
+             onError={() => setCaptchaToken("")}
+             action="submit"
+           />
+
        </div>
 
 
