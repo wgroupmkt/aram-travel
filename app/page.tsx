@@ -37,10 +37,10 @@ export default function Registro() {
 
   // 🔎 VALIDAR (SIN AUTOCOMPLETAR)
   const validarNumero = async (numero: string) => {
-    if (!numero || numero.length < 5) {
-      setExiste(null);
-      return;
-    }
+    if (!/^\d{4}$/.test(numero)) {
+        setExiste(null);
+        return;
+       }
 
     try {
       setValidando(true);
@@ -194,7 +194,6 @@ export default function Registro() {
             onChange={handleChange}
             placeholder="Número de pasajero"
             required
-            maxLength={10}
             inputMode="numeric"
             className={`
               ${montserrat.className}
