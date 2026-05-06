@@ -3,6 +3,9 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Montserrat } from "next/font/google";
+import Turnstile from "react-turnstile";
+
+
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -10,6 +13,8 @@ const montserrat = Montserrat({
 });
 
 export default function Registro() {
+
+  const [captchaToken, setCaptchaToken] = useState("");
   const [form, setForm] = useState({
     numeroPasajero: "",
     name: "",
@@ -79,51 +84,60 @@ export default function Registro() {
   }, [form.numeroPasajero]);
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!existe) {
-      setErrorMessage("El número de pasajero no es válido");
-      return;
-    }
+  if (!existe) {
+    setErrorMessage("El número de pasajero no es válido");
+    return;
+  }
 
-    setLoading(true);
-    setErrorMessage("");
-    setSuccessMessage("");
+  if (!captchaToken) {
+    setErrorMessage("Completá la verificación captcha");
+    return;
+  }
 
-    try {
-      const res = await fetch("/api/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+  setLoading(true);
+  setErrorMessage("");
+  setSuccessMessage("");
+
+  try {
+    const res = await fetch("/api/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...form,
+        captchaToken,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      setSuccessMessage(
+        `🎉 Registro exitoso! N° de sorteo: ${data.numeroSorteo}`
+      );
+
+      setForm({
+        numeroPasajero: "",
+        name: "",
+        dniParticipante: "",
+        edad: "",
+        fechaNacimiento: "",
+        email: "",
+        phone: "",
       });
 
-      const data = await res.json();
-
-      if (data.success) {
-        setSuccessMessage(
-          `🎉 Registro exitoso! N° de sorteo: ${data.numeroSorteo}`
-        );
-
-        setForm({
-          numeroPasajero: "",
-          name: "",
-          dniParticipante: "",
-          edad: "",
-          fechaNacimiento: "",
-          email: "",
-          phone: "",
-        });
-
-        setExiste(null);
-      } else {
-        setErrorMessage(data.error || "Ocurrió un error");
-      }
-    } catch {
-      setErrorMessage("Error de conexión con el servidor");
+      setCaptchaToken("");
+      setExiste(null);
+    } else {
+      setErrorMessage(data.error || "Ocurrió un error");
     }
-
-    setLoading(false);
+  } catch {
+    setErrorMessage("Error de conexión con el servidor");
   }
+
+  setLoading(false);
+}
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target;
@@ -275,10 +289,22 @@ export default function Registro() {
           </div>
         )}
 
-        {/* BOTÓN */}
+        {/* BOTÓN */ }
+
+        <div className="flex justify-center">
+         <Turnstile
+           sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+           onVerify={(token) => setCaptchaToken(token)}
+           onExpire={() => setCaptchaToken("")}
+           onError={() => setCaptchaToken("")}
+           options={{ action: "submit" }}
+         />
+       </div>
+
+
         <button
           type="submit"
-          disabled={!existe || validando || loading}
+          disabled={!existe || validando || loading || !captchaToken}
           className="relative flex justify-center cursor-pointer group disabled:opacity-50"
         >
           <Image

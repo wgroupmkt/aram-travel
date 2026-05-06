@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/firebaseAdmin";
 import { Resend } from "resend";
-import { generarImagen } from "@/lib/generarImagen";
 import { agregarFila } from "@/lib/googleSheets";
 import crypto from "crypto";
 
@@ -13,23 +12,76 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    let {
+    const {
       numeroPasajero,
       name,
       dniParticipante,
       fechaNacimiento,
       email,
       phone,
+      captchaToken,
     } = body;
 
-    // 🔐 IP (para futuro rate limit)
-    const ip = req.headers.get("x-forwarded-for") || "unknown";
+    // 🔐 CAPTCHA obligatorio
+    if (!captchaToken) {
+      return NextResponse.json({
+        success: false,
+        error: "Captcha requerido",
+      });
+    }
 
-    // 🧼 LIMPIAR DATOS
-    const numeroLimpio = String(numeroPasajero).replace(/\D/g, "");
-    const dniLimpio = String(dniParticipante).replace(/\D/g, "");
+    // 🌐 Obtener IP real
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0].trim() || "unknown";
 
-    // ✅ VALIDACIONES
+    // 🧼 Limpiar datos
+    const numeroLimpio = String(numeroPasajero || "").replace(/\D/g, "");
+    const dniLimpio = String(dniParticipante || "").replace(/\D/g, "");
+
+    // 🔐 Turnstile secret
+    const turnstileSecret = process.env.TURNSTILE_SECRET_KEY;
+    if (!turnstileSecret) throw new Error("TURNSTILE_SECRET_MISSING");
+
+    // 🤖 Validar CAPTCHA
+    const verifyCaptcha = await fetch(
+      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          secret: turnstileSecret,
+          response: captchaToken,
+          remoteip: ip,
+        }),
+      }
+    );
+
+    const captchaResult = await verifyCaptcha.json();
+
+    // 🔐 Validación fuerte
+    if (
+      !captchaResult.success ||
+      captchaResult.action !== "submit" ||
+      captchaResult.hostname !== "bono.aramendiviajes.com"
+    ) {
+      return NextResponse.json({
+        success: false,
+        error: "Captcha inválido o sospechoso",
+      });
+    }
+
+    // ⏱ Validar expiración (2 min)
+    const challengeTime = new Date(captchaResult.challenge_ts).getTime();
+    if (Date.now() - challengeTime > 2 * 60 * 1000) {
+      return NextResponse.json({
+        success: false,
+        error: "Captcha expirado",
+      });
+    }
+
+    // ✅ Validaciones básicas
     if (!numeroLimpio || !name || !dniLimpio || !fechaNacimiento) {
       return NextResponse.json({
         success: false,
@@ -45,14 +97,15 @@ export async function POST(req: Request) {
       throw new Error("DNI_INVALIDO");
     }
 
-    // 🎂 CALCULAR EDAD
+    // 🎂 Calcular edad
     function calcularEdad(fecha: string) {
       const hoy = new Date();
       const nacimiento = new Date(fecha);
-      let edad = hoy.getFullYear() - nacimiento.getFullYear();
-      const m = hoy.getMonth() - nacimiento.getMonth();
 
-      if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) {
+      let edad = hoy.getFullYear() - nacimiento.getFullYear();
+      const mes = hoy.getMonth() - nacimiento.getMonth();
+
+      if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
         edad--;
       }
 
@@ -61,7 +114,7 @@ export async function POST(req: Request) {
 
     const edadCalculada = calcularEdad(fechaNacimiento);
 
-    // 📌 REFERENCIAS
+    // 📌 Referencias Firestore
     const passengerRef = db.collection("pasajeros").doc(numeroLimpio);
     const dniRef = db.collection("dniCounts").doc(dniLimpio);
 
@@ -71,12 +124,10 @@ export async function POST(req: Request) {
       const passengerDoc = await transaction.get(passengerRef);
       const dniDoc = await transaction.get(dniRef);
 
-      // ❌ NO CREAR PASAJERO AUTOMÁTICAMENTE
       if (!passengerDoc.exists) {
         throw new Error("PASAJERO_NO_VALIDO");
       }
 
-      // 🔢 LIMITE POR PASAJERO
       const participantsSnapshot = await transaction.get(
         passengerRef.collection("participants")
       );
@@ -85,35 +136,30 @@ export async function POST(req: Request) {
         throw new Error("LIMITE_PASAJERO");
       }
 
-      // 🔢 LIMITE POR DNI
-      let currentCount = dniDoc.exists ? dniDoc.data()?.count || 0 : 0;
+      const currentCount = dniDoc.exists
+        ? dniDoc.data()?.count || 0
+        : 0;
 
       if (currentCount >= 3) {
         throw new Error("LIMITE_DNI");
       }
 
-      // 🎟 RANDOM SEGURO
-      const allParticipants = await transaction.get(
-        db.collectionGroup("participants")
-      );
-
-      const totalGenerados = allParticipants.size;
-
+      // 🎟 Generar número único (optimizado)
       let numeroValido = false;
 
       while (!numeroValido) {
-        if (totalGenerados < 90000) {
-          raffleNumber = crypto.randomInt(10000, 99999).toString();
-        } else {
-          raffleNumber = crypto.randomInt(100000, 999999).toString();
-        }
+        raffleNumber = crypto.randomInt(10000, 100000).toString();
 
-        const existe = allParticipants.docs.some(
-          (doc) => doc.id === raffleNumber
-        );
+        const raffleRef = db.collection("raffleNumbers").doc(raffleNumber);
+        const raffleDoc = await transaction.get(raffleRef);
 
-        if (!existe) {
+        if (!raffleDoc.exists) {
           numeroValido = true;
+
+          // reservar número
+          transaction.set(raffleRef, {
+            createdAt: new Date(),
+          });
         }
       }
 
@@ -121,7 +167,7 @@ export async function POST(req: Request) {
         .collection("participants")
         .doc(raffleNumber);
 
-      // 💾 GUARDAR PARTICIPANTE
+      // 💾 Guardar participante
       transaction.set(participantRef, {
         name: name.trim(),
         fechaNacimiento,
@@ -134,7 +180,7 @@ export async function POST(req: Request) {
         createdAt: new Date(),
       });
 
-      // 🔢 ACTUALIZAR DNI
+      // 🔢 actualizar contador DNI
       transaction.set(
         dniRef,
         { count: currentCount + 1 },
@@ -145,19 +191,16 @@ export async function POST(req: Request) {
     // 📄 Google Sheets
     await agregarFila({
       numeroPasajero: numeroLimpio,
-      name,
+      name: name.trim(),
       dni: dniLimpio,
       edad: edadCalculada,
-      email,
-      phone,
+      email: email || "",
+      phone: phone || "",
       numeroSorteo: raffleNumber,
     });
 
-    // 🖼 Imagen
-    const bufferImagen = await generarImagen(raffleNumber);
-
     // 📩 Email
-    if (email && resend) {
+    if (email && resend && /\S+@\S+\.\S+/.test(email)) {
       try {
         await resend.emails.send({
           from: "Registro <info@bono.aramendiviajes.com>",
@@ -181,34 +224,21 @@ export async function POST(req: Request) {
       success: true,
       numeroSorteo: raffleNumber,
     });
-
   } catch (error: any) {
     console.error("❌ ERROR REGISTER:", error);
 
-    if (error.message === "PASAJERO_NO_VALIDO") {
-      return NextResponse.json({
-        success: false,
-        error: "Número de pasajero inválido 🚫",
-      });
-    }
-
-    if (error.message === "LIMITE_DNI") {
-      return NextResponse.json({
-        success: false,
-        error: "Este DNI ya tiene 3 números 🚫",
-      });
-    }
-
-    if (error.message === "LIMITE_PASAJERO") {
-      return NextResponse.json({
-        success: false,
-        error: "Este pasajero alcanzó el máximo de 15 ventas 🚫",
-      });
-    }
+    const mapErrors: Record<string, string> = {
+      TURNSTILE_SECRET_MISSING: "Falta configurar Turnstile",
+      PASAJERO_NO_VALIDO: "Número de pasajero inválido 🚫",
+      LIMITE_DNI: "Este DNI ya tiene 3 números 🚫",
+      LIMITE_PASAJERO: "Este pasajero alcanzó el máximo 🚫",
+      NUMERO_INVALIDO: "Número de pasajero inválido",
+      DNI_INVALIDO: "DNI inválido",
+    };
 
     return NextResponse.json({
       success: false,
-      error: "Error en el servidor",
+      error: mapErrors[error.message] || "Error en el servidor",
     });
   }
 }
