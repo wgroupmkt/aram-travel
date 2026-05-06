@@ -6,6 +6,7 @@ import { Montserrat } from "next/font/google";
 import Turnstile from "react-turnstile";
 
 
+console.log("SITE KEY:", process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
 
 const montserrat = Montserrat({
   subsets: ["latin"],
