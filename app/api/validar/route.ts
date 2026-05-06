@@ -13,7 +13,10 @@ export async function GET(req: Request) {
       });
     }
 
-    const docRef = db.collection("pasajeros").doc(numero);
+    // 🔥 MISMA LIMPIEZA QUE REGISTER
+    const numeroLimpio = String(numero).replace(/\D/g, "");
+
+    const docRef = db.collection("pasajeros").doc(numeroLimpio);
     const docSnap = await docRef.get();
 
     if (!docSnap.exists) {
@@ -24,7 +27,6 @@ export async function GET(req: Request) {
 
     return NextResponse.json({
       existe: true,
-      data: docSnap.data(),
     });
   } catch (error) {
     console.error("ERROR VALIDAR:", error);
