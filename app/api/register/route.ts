@@ -129,11 +129,23 @@ export async function POST(req: Request) {
         throw new Error("PASAJERO_NO_VALIDO");
       }
 
-      const participantsSnapshot = await transaction.get(
-        passengerRef.collection("participants")
-      );
+      // 📅 Mes actual
+      const mesActual = `${new Date().getFullYear()}-${String(
+        new Date().getMonth() + 1
+      ).padStart(2, "0")}`;
 
-      if (participantsSnapshot.size >= 15) {
+       // 📊 Contador mensual del pasajero
+      const monthlyRef = passengerRef
+        .collection("monthlyCounts")
+        .doc(mesActual);
+
+      const monthlyDoc = await transaction.get(monthlyRef);
+
+      const monthlyCount = monthlyDoc.exists
+         ? monthlyDoc.data()?.count || 0
+         : 0;
+
+      if (monthlyCount >= 15) {
         throw new Error("LIMITE_PASAJERO");
       }
 
