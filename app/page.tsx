@@ -209,7 +209,7 @@ export default function Registro() {
           />
 
           {validando && (
-            <p className="text-gray-500 text-sm ml-2">Verificando...</p>
+            <p className="text-gray-500 text-sm ml-2">Verificando..</p>
           )}
 
           {existe === false && !validando && (
