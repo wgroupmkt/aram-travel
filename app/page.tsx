@@ -37,7 +37,7 @@ export default function Registro() {
 
   // 🔎 VALIDAR (SIN AUTOCOMPLETAR)
   const validarNumero = async (numero: string) => {
-    if (!/^\d{4}$/.test(numero)) {
+    if (!/^\d{4,10}$/.test(numero)) {
         setExiste(null);
         return;
        }
